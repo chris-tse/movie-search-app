@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite"],
+  "files": {
+    "includes": ["package.json", "README.md", "src"]
+  },
+  "javascript": {
+    "formatter": {
+      "lineWidth": 120,
+      "indentStyle": "tab",
+      "indentWidth": 2,
+      "semicolons": "asNeeded",
+      "trailingCommas": "all",
+      "quoteStyle": "single"
+    }
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noImgElement": "off"
+      },
+      "complexity": {
+        "useArrowFunction": "off"
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [":BUN:", ":NODE:"]
+          }
+        }
+      }
+    }
+  }
+}
