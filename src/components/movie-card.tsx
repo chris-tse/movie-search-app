@@ -14,7 +14,7 @@ type Movie = {
 	id: string
 	title: string
 	posterUrl: string
-	rating: string
+	rating: number
 	duration: string
 	year: number
 	genre: string

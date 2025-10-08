@@ -1,13 +1,6 @@
-const BASE_URL = 'https://0kadddxyh3.execute-api.us-east-1.amazonaws.com'
-
-function fetchAndSetToken() {
-	return fetch(`${BASE_URL}/auth/token`)
-		.then((res) => res.json())
-		.then((data) => {
-			localStorage.setItem('token', data.token)
-			return data.token
-		})
-}
+import type { z } from 'zod/v4-mini'
+import { fetchAndSetToken } from './auth'
+import { BASE_URL } from './const'
 
 type RestOptions = {
 	needsToken: boolean
@@ -17,6 +10,7 @@ type RestOptions = {
 
 export async function rest<T>(
 	path: string,
+	schema: z.ZodMiniType<T>,
 	options: RestOptions = { needsToken: true, options: {}, headers: {} },
 ): Promise<T> {
 	let token: string | null = null
@@ -33,5 +27,9 @@ export async function rest<T>(
 		},
 	})
 
-	return response.json()
+	const json = await response.json()
+
+	console.log({ json })
+
+	return schema.parse(json)
 }

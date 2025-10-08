@@ -1,22 +1,33 @@
-import { lazy, Suspense } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { lazy } from 'react'
 import { Header } from './components/header'
 import { LoadingShell } from './components/loading-shell'
+import { genresQuery } from './features/genres/queries'
+import { healthcheckQuery } from './features/healthcheck/queries'
 
 const MovieSearch = lazy(() => import('./components/movie-search').then((module) => ({ default: module.MovieSearch })))
 
-export function App({ isApiHealthy }: { isApiHealthy: boolean }) {
+export function App() {
+	const { isPending: isHealthcheckPending, data: healthcheckData } = useQuery(healthcheckQuery)
+	const { isPending: isGenresPending, data: genresData } = useQuery(genresQuery)
+
+	if (isHealthcheckPending || isGenresPending) {
+		return <LoadingShell />
+	}
+
+	const apiIsHealthy = Boolean(healthcheckData?.contentful)
+
 	return (
-		<div className="container mx-auto max-w-7xl px-4 py-8">
+		<div className="container mx-auto min-h-screen max-w-7xl px-4 py-8">
 			<Header />
-			{isApiHealthy ? (
-				<Suspense fallback={<LoadingShell />}>
-					<MovieSearch />
-				</Suspense>
+			{apiIsHealthy ? (
+				<MovieSearch genres={genresData?.data?.genres?.nodes?.map((genre) => genre.title) ?? []} />
 			) : (
-				<div className="text-center font-bold text-2xl">Movies API is down</div>
+				<div className="text-center font-bold">
+					<p className="text-2xl">Movies API is currently down</p>
+					<p className="text-sm">Please try again later</p>
+				</div>
 			)}
 		</div>
 	)
 }
-
-export default App
