@@ -6,6 +6,7 @@ type RestOptions = {
 	needsToken: boolean
 	headers?: Record<string, string>
 	options?: RequestInit
+	query?: URLSearchParams
 }
 
 export async function rest<T>(
@@ -19,7 +20,13 @@ export async function rest<T>(
 		token = localStorage.getItem('token') ?? (await fetchAndSetToken())
 	}
 
-	const response = await fetch(`${BASE_URL}${path}`, {
+	let url = BASE_URL.concat(path)
+
+	if (options.query) {
+		url = url.concat(options.query.toString())
+	}
+
+	const response = await fetch(url, {
 		...options.options,
 		headers: {
 			...options.headers,
@@ -28,8 +35,6 @@ export async function rest<T>(
 	})
 
 	const json = await response.json()
-
-	console.log({ json })
 
 	return schema.parse(json)
 }
