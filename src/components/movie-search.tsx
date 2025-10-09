@@ -1,5 +1,5 @@
-import { startTransition, useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { startTransition, useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Film } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { MovieCard } from '@/components/movie-card'
@@ -10,9 +10,10 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from '@/components/ui/pagination'
-import { type Movie, moviesQuery, movieTotalsQuery } from '@/features/movies/queries'
+import { type MovieResult, movieDetailQuery, moviesQuery, movieTotalsQuery } from '@/features/movies/queries'
 import { usePrefetchPage } from '@/hooks/use-prefetch-page'
 import { LoadingShell } from './loading-shell'
+import { MovieDetailDialog } from './movie-detail-dialog'
 import { SearchBar } from './search-bar'
 
 const RESULTS_PER_PAGE = 16
@@ -75,6 +76,20 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 		}
 	}, [isNextHovered, prefetchNextPage])
 
+	const [activeMovieId, setActiveMovieId] = useState<string | null>(null)
+	const lastActiveMovieIdRef = useRef<string | null>(null)
+	const queryClient = useQueryClient()
+
+	function handleCardHover(id: string) {
+		queryClient.prefetchQuery(movieDetailQuery(id))
+	}
+
+	function handleCardClick(id: string) {
+		lastActiveMovieIdRef.current = id
+		setActiveMovieId(id)
+		queryClient.fetchQuery(movieDetailQuery(id))
+	}
+
 	return (
 		<div>
 			<div className="mb-8 space-y-4">
@@ -106,6 +121,26 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 				isError={isError}
 				isPending={isPending}
 				movies={moviesDataQuery.data?.data?.movies?.nodes}
+				onCardClick={handleCardClick}
+				onCardHover={handleCardHover}
+			/>
+
+			<MovieDetailDialog
+				movieId={activeMovieId}
+				onOpenChange={(open) => {
+					if (!open) {
+						setActiveMovieId(null)
+						// Restore focus to the card that opened the dialog, if it still exists in DOM
+						queueMicrotask(() => {
+							const id = lastActiveMovieIdRef.current
+							if (id) {
+								const el = document.querySelector<HTMLButtonElement>(`button[data-movie-id="${id}"]`)
+								el?.focus()
+							}
+						})
+					}
+				}}
+				open={activeMovieId != null}
 			/>
 
 			{hasActiveFilter && totalPages > 1 && (
@@ -176,11 +211,15 @@ function MainBody({
 	isPending,
 	isError,
 	movies,
+	onCardHover,
+	onCardClick,
 }: {
 	hasActiveFilter: boolean
 	isPending: boolean
 	isError: boolean
-	movies: Movie[] | undefined
+	movies: MovieResult[] | undefined
+	onCardHover: (id: string) => void
+	onCardClick: (id: string) => void
 }) {
 	if (!hasActiveFilter) {
 		return (
@@ -216,7 +255,7 @@ function MainBody({
 	return (
 		<div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{movies?.map((movie) => (
-				<MovieCard key={movie.id} movie={movie} />
+				<MovieCard key={movie.id} movie={movie} onClick={onCardClick} onHover={onCardHover} />
 			))}
 		</div>
 	)
