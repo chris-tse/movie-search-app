@@ -1,109 +1,42 @@
-import { ChevronLeft, ChevronRight, Film, Search } from 'lucide-react'
-import { parseAsInteger, useQueryState } from 'nuqs'
-import { lazy, Suspense, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Film, Search } from 'lucide-react'
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
+import { lazy, Suspense } from 'react'
 import { MovieCard } from '@/components/movie-card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { type Movie, moviesQuery, movieTotalsQuery } from '@/features/movies/queries'
+import { LoadingShell } from './loading-shell'
+import { useViewportWidth } from '@/hooks/use-viewport-width'
 
 const SelectContent = lazy(() => import('../components/ui/select').then((mod) => ({ default: mod.SelectContent })))
 const SelectItem = lazy(() => import('../components/ui/select').then((mod) => ({ default: mod.SelectItem })))
 
-// Placeholder movie data
-const PLACEHOLDER_MOVIES = [
-	{
-		id: '1',
-		title: 'The Stellar Journey',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 8.5,
-		duration: '2h 28m',
-		year: 2024,
-		genre: 'Sci-Fi',
-		summary:
-			'An epic adventure through the cosmos as a crew of explorers discovers a mysterious signal from the edge of the known universe.',
-	},
-	{
-		id: '2',
-		title: 'Midnight Chronicles',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 7.8,
-		duration: '1h 55m',
-		year: 2024,
-		genre: 'Thriller',
-		summary: 'A detective races against time to solve a series of interconnected crimes in a city that never sleeps.',
-	},
-	{
-		id: '3',
-		title: 'Echoes of Tomorrow',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 9.1,
-		duration: '2h 15m',
-		year: 2024,
-		genre: 'Sci-Fi',
-		summary: 'In a world where memories can be traded, one person fights to preserve the truth of the past.',
-	},
-	{
-		id: '4',
-		title: 'The Last Garden',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 8.2,
-		duration: '2h 5m',
-		year: 2023,
-		genre: 'Drama',
-		summary: 'A touching story about family, loss, and the healing power of nature in a rapidly changing world.',
-	},
-	{
-		id: '5',
-		title: 'Velocity',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 7.5,
-		duration: '1h 48m',
-		year: 2024,
-		genre: 'Action',
-		summary: 'High-octane thrills as underground racers compete in the most dangerous competition ever conceived.',
-	},
-	{
-		id: '6',
-		title: 'Whispers in the Dark',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 7.9,
-		duration: '1h 42m',
-		year: 2024,
-		genre: 'Horror',
-		summary: 'A psychological thriller that blurs the line between reality and nightmare in an isolated mansion.',
-	},
-	{
-		id: '7',
-		title: 'Heartstrings',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 8.0,
-		duration: '1h 52m',
-		year: 2024,
-		genre: 'Romance',
-		summary: 'Two musicians from different worlds find harmony in the most unexpected places.',
-	},
-	{
-		id: '8',
-		title: 'The Forgotten War',
-		posterUrl: 'https://placehold.co/305x457',
-		rating: 8.7,
-		duration: '2h 35m',
-		year: 2023,
-		genre: 'Drama',
-		summary: "An unflinching look at courage and sacrifice during one of history's most pivotal conflicts.",
-	},
-]
-
+const RESULTS_PER_PAGE = 16
 export function MovieSearch({ genres }: { genres: string[] }) {
-	const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
-	const [selectedGenre, setSelectedGenre] = useState('All Genres')
-	const [searchQuery, setSearchQuery] = useState('')
+	const viewportWidth = useViewportWidth()
 
-	const totalResults = 999
-	const resultsPerPage = 20
-	const totalPages = Math.ceil(totalResults / resultsPerPage)
+	const [page, _setPage] = useQueryState('page', parseAsInteger.withDefault(1))
+	const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''))
+	const [genre, setGenre] = useQueryState('genre', parseAsString.withDefault(''))
 
-	const isSearchEmpty = searchQuery.trim() === ''
+	const searchQuery = search === '' ? undefined : search
+	const genreQuery = genre === '' ? undefined : genre
+
+	const totalsQuery = useQuery(movieTotalsQuery({ search: searchQuery, genre: genreQuery }))
+	const moviesDataQuery = useQuery(moviesQuery({ page, limit: RESULTS_PER_PAGE, where: { search: searchQuery, genre: genreQuery } }))
+
+	const isPending = totalsQuery.isPending || moviesDataQuery.isPending
+	const isError = totalsQuery.isError || moviesDataQuery.isError
+
+	const totalResults = totalsQuery.data?.totalPages ?? 0
+	
+
+	const _totalPages = Math.ceil(totalResults / RESULTS_PER_PAGE)
+
+	const isSearchEmpty = searchQuery ? searchQuery.trim() === '' : true
+
+	console.log({data: moviesDataQuery.data})
 
 	return (
 		<div>
@@ -114,7 +47,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 						<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 						<Input
 							className="h-11 border-border bg-card pl-10"
-							onChange={(e) => setSearchQuery(e.target.value)}
+							onChange={(e) => setSearch(e.target.value.trim())}
 							placeholder="Search for movies..."
 							type="text"
 							value={searchQuery}
@@ -130,17 +63,17 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 						}
 					>
 						{genres.length > 0 ? (
-							<Select value={selectedGenre}>
+							<Select value={genre}>
 								<SelectTrigger className="h-11 w-full border-border bg-card md:w-[200px]">
 									<SelectValue placeholder="Select genre" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem key="all" onClick={() => setSelectedGenre('All Genres')} value="All Genres">
+									<SelectItem key="all" onClick={() => setGenre('All Genres')} value="All Genres">
 										All Genres
 									</SelectItem>
-									{genres.map((genre) => (
-										<SelectItem key={genre} onClick={() => setSelectedGenre(genre)} value={genre}>
-											{genre}
+									{genres.map((g) => (
+										<SelectItem key={g} onClick={() => setGenre(g)} value={g}>
+											{g}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -160,7 +93,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 						<p className="text-muted-foreground text-sm">
 							Showing{' '}
 							<span className="font-medium text-foreground">
-								{(page - 1) * resultsPerPage + 1}-{Math.min(page * resultsPerPage, totalResults)}
+								{(page - 1) * RESULTS_PER_PAGE + 1}-{Math.min(page * RESULTS_PER_PAGE, totalResults)}
 							</span>{' '}
 							of <span className="font-medium text-foreground">{totalResults}</span> results
 						</p>
@@ -168,79 +101,57 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 				)}
 			</div>
 
-			{isSearchEmpty ? (
-				<div className="flex flex-col items-center justify-center px-4 py-24">
-					<div className="mb-6 rounded-full bg-muted p-6">
-						<Film className="h-12 w-12 text-muted-foreground" />
-					</div>
-					<h2 className="mb-2 text-balance text-center font-semibold text-2xl">Start Your Search</h2>
-					<p className="max-w-md text-balance text-center text-muted-foreground">
-						Enter a movie title in the search bar above to discover films and explore detailed information about each
-						one.
-					</p>
+			<MainBody
+				isError={isError}
+				isPending={isPending}
+				isSearchEmpty={isSearchEmpty}
+				movies={moviesDataQuery.data?.data?.movies?.nodes}
+			/>
+		</div>
+	)
+}
+
+function MainBody({
+	isSearchEmpty,
+	isPending,
+	isError,
+	movies,
+}: {
+	isSearchEmpty: boolean
+	isPending: boolean
+	isError: boolean
+	movies: Movie[] | undefined
+}) {
+	console.log({ isSearchEmpty, isPending, isError, movies })
+
+	if (isSearchEmpty) {
+		return (
+			<div className="flex flex-col items-center justify-center px-4 py-24">
+				<div className="mb-6 rounded-full bg-muted p-6">
+					<Film className="h-12 w-12 text-muted-foreground" />
 				</div>
-			) : (
-				<>
-					{/* Movie Grid */}
-					<div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{PLACEHOLDER_MOVIES.map((movie) => (
-							<MovieCard key={movie.id} movie={movie} />
-						))}
-					</div>
 
-					{/* Pagination */}
-					<div className="flex items-center justify-center gap-2">
-						<Button
-							className="h-9 w-9"
-							disabled={page === 1}
-							onClick={() => setPage((p) => Math.max(1, p - 1))}
-							size="icon"
-							variant="outline"
-						>
-							<ChevronLeft className="h-4 w-4" />
-							<span className="sr-only">Previous page</span>
-						</Button>
+				<h2 className="mb-2 text-balance text-center font-semibold text-2xl">Start Your Search</h2>
+				<p className="max-w-md text-balance text-center text-muted-foreground">
+					Enter a movie title in the search bar above to discover films and explore detailed information about each one.
+				</p>
+			</div>
+		)
+	}
 
-						<div className="flex items-center gap-1">
-							{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-								let pageNum
-								if (totalPages <= 5) {
-									pageNum = i + 1
-								} else if (page <= 3) {
-									pageNum = i + 1
-								} else if (page >= totalPages - 2) {
-									pageNum = totalPages - 4 + i
-								} else {
-									pageNum = page - 2 + i
-								}
+	if (isPending) {
+		return <LoadingShell />
+	}
 
-								return (
-									<Button
-										className="h-9 w-9"
-										key={pageNum}
-										onClick={() => setPage(pageNum)}
-										size="icon"
-										variant={page === pageNum ? 'default' : 'outline'}
-									>
-										{pageNum}
-									</Button>
-								)
-							})}
-						</div>
+	if (isError) {
+		return <div>Error loading movies</div>
+	}
 
-						<Button
-							className="h-9 w-9"
-							disabled={page === totalPages}
-							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-							size="icon"
-							variant="outline"
-						>
-							<ChevronRight className="h-4 w-4" />
-							<span className="sr-only">Next page</span>
-						</Button>
-					</div>
-				</>
-			)}
+	return (
+		<div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			{movies?.map((movie) => (
+				<MovieCard key={movie.id} movie={movie} />
+			))}
 		</div>
 	)
 }

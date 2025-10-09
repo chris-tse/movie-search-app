@@ -23,7 +23,7 @@ export async function rest<T>(
 	let url = BASE_URL.concat(path)
 
 	if (options.query) {
-		url = url.concat(options.query.toString())
+		url = url.concat('?',options.query.toString())
 	}
 
 	const response = await fetch(url, {
