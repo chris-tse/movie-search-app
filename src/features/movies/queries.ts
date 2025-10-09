@@ -18,7 +18,7 @@ export const movieTotalsQuery = (params: { search?: string; genre?: string }) =>
 		queryKey: ['movie-totals', params],
 		queryFn: () =>
 			rest<{ data: { id: string; title: string }[]; totalPages: number }>(
-				'/movies/titles',
+				'/movies',
 				z.object({ data: z.array(z.object({ id: z.string(), title: z.string() })), totalPages: z.number() }),
 				{ needsToken: true, query: metadataSearchParams },
 			),

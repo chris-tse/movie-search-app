@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react'
 import { MovieCard } from '@/components/movie-card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import { type Movie, moviesQuery, movieTotalsQuery } from '@/features/movies/queries'
 import { LoadingShell } from './loading-shell'
 import { useViewportWidth } from '@/hooks/use-viewport-width'
@@ -16,7 +17,7 @@ const RESULTS_PER_PAGE = 16
 export function MovieSearch({ genres }: { genres: string[] }) {
 	const viewportWidth = useViewportWidth()
 
-	const [page, _setPage] = useQueryState('page', parseAsInteger.withDefault(1))
+	const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
 	const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''))
 	const [genre, setGenre] = useQueryState('genre', parseAsString.withDefault(''))
 
@@ -30,9 +31,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 	const isError = totalsQuery.isError || moviesDataQuery.isError
 
 	const totalResults = totalsQuery.data?.totalPages ?? 0
-	
-
-	const _totalPages = Math.ceil(totalResults / RESULTS_PER_PAGE)
+	const totalPages = Math.max(1, Math.ceil(totalResults / RESULTS_PER_PAGE))
 
 	const isSearchEmpty = searchQuery ? searchQuery.trim() === '' : true
 
@@ -107,6 +106,46 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 				isSearchEmpty={isSearchEmpty}
 				movies={moviesDataQuery.data?.data?.movies?.nodes}
 			/>
+
+			{!isSearchEmpty && totalPages > 1 && (
+				<Pagination className="mt-6">
+					<PaginationContent>
+						<PaginationItem>
+							<PaginationPrevious
+								href={page > 1 ? `?page=${page - 1}&search=${search}&genre=${genre}` : undefined}
+								onClick={(e) => {
+									if (page <= 1) {
+										e.preventDefault()
+										return
+									}
+									e.preventDefault()
+									setPage(page - 1)
+								}}
+								aria-disabled={page <= 1}
+								className={page <= 1 ? 'pointer-events-none opacity-50' : undefined}
+							/>
+						</PaginationItem>
+						<PaginationItem>
+							<span className="px-3 text-sm">Page {page} of {totalPages}</span>
+						</PaginationItem>
+						<PaginationItem>
+							<PaginationNext
+								href={page < totalPages ? `?page=${page + 1}&search=${search}&genre=${genre}` : undefined}
+								onClick={(e) => {
+									if (page >= totalPages) {
+										e.preventDefault()
+										return
+									}
+									e.preventDefault()
+									setPage(page + 1)
+								}}
+								aria-disabled={page >= totalPages}
+								className={page >= totalPages ? 'pointer-events-none opacity-50' : undefined}
+							/>
+						</PaginationItem>
+					</PaginationContent>
+				</Pagination>
+			)}
 		</div>
 	)
 }
