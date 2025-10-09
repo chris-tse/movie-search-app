@@ -1,7 +1,7 @@
+import { startTransition, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Film } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
-import { startTransition, useEffect, useState } from 'react'
 import { MovieCard } from '@/components/movie-card'
 import {
 	Pagination,

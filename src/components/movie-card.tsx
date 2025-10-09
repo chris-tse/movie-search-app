@@ -1,9 +1,9 @@
+import { useState } from 'react'
 import { parse } from 'iso8601-duration'
 import { ImageOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Movie } from '@/features/movies/queries'
-import { useState } from 'react'
 
 type MovieCardProps = {
 	movie: Movie

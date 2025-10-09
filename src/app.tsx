@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
 import { lazy } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Header } from './components/header'
 import { LoadingShell } from './components/loading-shell'
 import { genresQuery } from './features/genres/queries'

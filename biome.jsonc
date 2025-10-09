@@ -16,6 +16,9 @@
   },
   "linter": {
     "rules": {
+      "a11y": {
+        "noNoninteractiveElementInteractions": "off"
+      },
       "performance": {
         "noImgElement": "off"
       },
@@ -34,7 +37,7 @@
         "organizeImports": {
           "level": "on",
           "options": {
-            "groups": [":BUN:", ":NODE:"]
+            "groups": [":BUN:", ":NODE:", "react"]
           }
         }
       }

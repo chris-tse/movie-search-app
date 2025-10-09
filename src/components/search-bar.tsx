@@ -1,8 +1,7 @@
+import { Suspense, startTransition, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
-import { Suspense, startTransition, useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useDebounce } from '@/hooks/use-debounce'
 
 type SearchBarProps = {
 	search: string
@@ -16,18 +15,29 @@ type SearchBarProps = {
 const DEBOUNCE_DELAY = 300
 
 export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage }: SearchBarProps) {
-	const [localSearch, setLocalSearch] = useState(search)
-	const debouncedSearch = useDebounce(localSearch, DEBOUNCE_DELAY)
+	const timerRef = useRef<number | undefined>(undefined)
 
-	useEffect(() => {
-		if (debouncedSearch === search) {
-			return
+	useEffect(
+		() => () => {
+			if (timerRef.current) {
+				clearTimeout(timerRef.current)
+			}
+		},
+		[],
+	)
+
+	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const value = e.target.value
+		if (timerRef.current) {
+			clearTimeout(timerRef.current)
 		}
-		startTransition(() => {
-			setSearch(debouncedSearch)
-			setPage(1)
-		})
-	}, [debouncedSearch, search, setSearch, setPage])
+		timerRef.current = window.setTimeout(() => {
+			startTransition(() => {
+				setSearch(value)
+				setPage(1)
+			})
+		}, DEBOUNCE_DELAY)
+	}
 
 	return (
 		<div className="flex flex-col gap-4 md:flex-row">
@@ -35,10 +45,10 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 				<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 				<Input
 					className="h-11 border-border bg-card pl-10"
-					onChange={(e) => setLocalSearch(e.target.value)}
+					defaultValue={search}
+					onChange={handleChange}
 					placeholder="Search for movies..."
 					type="text"
-					value={localSearch}
 				/>
 			</div>
 			<Suspense

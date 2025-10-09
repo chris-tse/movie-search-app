@@ -1,5 +1,5 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { moviesQuery } from '@/features/movies/queries'
 
 type Params = {

@@ -1,6 +1,6 @@
+import { StrictMode } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/react'
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app.tsx'
 import { queryClient } from './lib/query/client'
