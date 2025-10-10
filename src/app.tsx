@@ -12,7 +12,7 @@ export function App() {
 	const { isPending: isGenresPending, data: genresData } = useQuery(genresQuery)
 
 	if (isHealthcheckPending || isGenresPending) {
-		return <LoadingShell />
+		return <LoadingShell heading="Preparing your movie search experience" subheading="What will you watch next?" className='h-screen'/>
 	}
 
 	const apiIsHealthy = Boolean(healthcheckData?.contentful)
