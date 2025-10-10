@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Film } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
+import { ExploreSections } from '@/components/explore-sections'
 import { MovieCard } from '@/components/movie-card'
 import {
 	Pagination,
@@ -116,14 +116,31 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 				)}
 			</div>
 
-			<MainBody
-				hasActiveFilter={hasActiveFilter}
-				isError={isError}
-				isPending={isPending}
-				movies={moviesDataQuery.data?.data?.movies?.nodes}
-				onCardClick={handleCardClick}
-				onCardHover={handleCardHover}
-			/>
+			{hasActiveFilter ? (
+				<MainBody
+					isError={isError}
+					isPending={isPending}
+					movies={moviesDataQuery.data?.data?.movies?.nodes}
+					onCardClick={handleCardClick}
+					onCardHover={handleCardHover}
+				/>
+			) : (
+				<ExploreSections
+					onCardClick={handleCardClick}
+					onCardHover={handleCardHover}
+					onSelectGenre={(g) => {
+						startTransition(() => {
+							setGenre(g)
+							setPage(1)
+						})
+						// focus search bar if present
+						queueMicrotask(() => {
+							const el = document.querySelector<HTMLInputElement>('input[name="search"]')
+							el?.focus()
+						})
+					}}
+				/>
+			)}
 
 			<MovieDetailDialog
 				movieId={activeMovieId}
@@ -207,35 +224,18 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 }
 
 function MainBody({
-	hasActiveFilter,
 	isPending,
 	isError,
 	movies,
 	onCardHover,
 	onCardClick,
 }: {
-	hasActiveFilter: boolean
 	isPending: boolean
 	isError: boolean
 	movies: MovieResult[] | undefined
 	onCardHover: (id: string) => void
 	onCardClick: (id: string) => void
 }) {
-	if (!hasActiveFilter) {
-		return (
-			<div className="flex flex-col items-center justify-center px-4 py-24">
-				<div className="mb-6 rounded-full bg-muted p-6">
-					<Film className="h-12 w-12 text-muted-foreground" />
-				</div>
-
-				<h2 className="mb-2 text-balance text-center font-semibold text-2xl">Start Your Search</h2>
-				<p className="max-w-md text-balance text-center text-muted-foreground">
-					Enter a movie title in the search bar above to discover films and explore detailed information about each one.
-				</p>
-			</div>
-		)
-	}
-
 	if (isPending) {
 		return <LoadingShell />
 	}
@@ -253,7 +253,7 @@ function MainBody({
 	}
 
 	return (
-		<div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+		<div className="mb-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
 			{movies?.map((movie) => (
 				<MovieCard key={movie.id} movie={movie} onClick={onCardClick} onHover={onCardHover} />
 			))}

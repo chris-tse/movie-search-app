@@ -45,22 +45,21 @@ export type MovieResult = {
 	datePublished: string | null
 }
 
-// MovieDetail: full detail object returned from REST /movies/:id
 export type MovieDetail = {
 	id: string
 	title: string
-	posterUrl: string | null
-	rating: string | null
-	summary: string | null
-	duration: string | null
-	datePublished: string | null
-	ratingValue: number | null
-	bestRating: number | null
-	worstRating: number | null
-	directors: string[]
-	writers: string[]
-	mainActors: string[]
-	genres: { id: string; title: string }[]
+	posterUrl?: string | null
+	rating?: string | null
+	summary?: string | null
+	duration?: string | null
+	datePublished?: string | null
+	ratingValue?: number | null
+	bestRating?: number | null
+	worstRating?: number | null
+	directors?: string[] | null
+	writers?: string[] | null
+	mainActors?: string[] | null
+	genres?: { id: string; title: string }[] | null
 }
 
 type Variables = {
@@ -111,9 +110,8 @@ export const moviesQuery = (params: { page: number; limit: number; where?: { gen
 	})
 }
 
-// Zod schema for movie detail REST response
-const nullableString = z.union([z.string(), z.literal(null)])
-const nullableNumber = z.union([z.number(), z.literal(null)])
+const nullableString = z.optional(z.nullable(z.string()))
+const nullableNumber = z.optional(z.nullable(z.number()))
 
 const movieDetailSchema = z.object({
 	id: z.string(),
@@ -126,10 +124,10 @@ const movieDetailSchema = z.object({
 	ratingValue: nullableNumber,
 	bestRating: nullableNumber,
 	worstRating: nullableNumber,
-	directors: z.array(z.string()),
-	writers: z.array(z.string()),
-	mainActors: z.array(z.string()),
-	genres: z.array(z.object({ id: z.string(), title: z.string() })),
+	directors: z.optional(z.nullable(z.array(z.string()))),
+	writers: z.optional(z.nullable(z.array(z.string()))),
+	mainActors: z.optional(z.nullable(z.array(z.string()))),
+	genres: z.optional(z.nullable(z.array(z.object({ id: z.string(), title: z.string() })))),
 })
 
 export const movieDetailQuery = (id: string | null) =>
@@ -138,3 +136,32 @@ export const movieDetailQuery = (id: string | null) =>
 		enabled: !!id,
 		queryFn: () => rest<MovieDetail>(`/movies/${id}`, movieDetailSchema, { needsToken: true }),
 	})
+
+// Explore genres query - fetch 4 movies per predefined genre in parallel
+const exploreTemplate = template // reuse same fields
+
+const EXPLORE_GENRES = ['Action', 'Comedy', 'Documentary', 'Sci-Fi', 'Horror'] as const
+export type ExploreGenre = (typeof EXPLORE_GENRES)[number]
+export type ExploreData = Record<ExploreGenre, MovieResult[]>
+
+export const exploreGenresQuery = queryOptions({
+	queryKey: ['explore-genres'],
+	queryFn: async () => {
+		// Run parallel GraphQL queries for each genre, first page, 4 items
+		const results = await Promise.all(
+			EXPLORE_GENRES.map(async (genre) => {
+				try {
+					const variables: Variables = {
+						pagination: { page: 1, perPage: 4 },
+						where: { genre },
+					}
+					const res = await graphql<{ data: { movies: { nodes: MovieResult[] } } }>(exploreTemplate, variables)
+					return [genre, res.data.movies.nodes] as const
+				} catch {
+					return [genre, []] as const // silently skip errors per requirements
+				}
+			}),
+		)
+		return Object.fromEntries(results) as ExploreData
+	},
+})
