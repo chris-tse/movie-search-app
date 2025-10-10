@@ -60,7 +60,7 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 					))}
 				</div>
 			</div>
-			<CardContent className="space-y-3 p-3 md:p-4">
+			<CardContent className="space-y-4 p-3 md:p-4">
 				<div>
 					<h3 className="mb-1 line-clamp-1 font-semibold text-md leading-tight md:text-lg">{movie.title}</h3>
 					<p className="text-muted-foreground text-sm">{movie.datePublished?.split('-')[0] ?? ''}</p>
@@ -69,7 +69,7 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 				<p className="line-clamp-2 hidden text-muted-foreground text-sm leading-relaxed md:block">{movie.summary}</p>
 			</CardContent>
 			<CardFooter className="mt-auto mb-4 px-5">
-				<div className="mt-6 flex w-full items-center justify-between">
+				<div className="md:mt-6 flex w-full items-center justify-between">
 					<div className="flex items-center gap-1">
 						<span className="font-medium text-sm">{movie.rating}</span>
 					</div>

@@ -28,12 +28,12 @@ export function MovieDetailDialog({
 
 	return (
 		<Dialog onOpenChange={onOpenChange} open={open}>
-			<DialogContent className="max-w-2xl">
+			<DialogContent className="max-w-full max-h-screen md:max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>{data?.title || 'Movie Details'}</DialogTitle>
 					{data?.summary && <DialogDescription className="line-clamp-3">{data?.summary}</DialogDescription>}
 				</DialogHeader>
-				<div className="grid gap-6 md:grid-cols-[180px_1fr]">
+				<div className="grid gap-6 grid-cols-2 md:grid-cols-[180px_1fr]">
 					<div className="relative aspect-[2/3] w-full overflow-hidden rounded bg-muted">
 						<DialogPoster data={data} isPending={isPending} posterUrl={posterUrl} setImageError={setImageError} />
 					</div>

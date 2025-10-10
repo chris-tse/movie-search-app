@@ -11,6 +11,9 @@ type Params = {
 	offset?: number
 }
 
+/**
+ * Configurable hook for getting queries to prefetch pages with offset
+ */
 export function usePrefetchPage({ page, totalPages, resultsPerPage, searchQuery, genreQuery, offset = 1 }: Params) {
 	const queryClient = useQueryClient()
 

@@ -1,14 +1,13 @@
-/**
- * Movie queries
- * - MovieResult: lightweight list item from GraphQL movies query
- * - MovieDetail: full detail from REST /movies/:id
- * movieDetailQuery uses REST + zod mini validation; moviesQuery uses GraphQL.
- */
 import { queryOptions } from '@tanstack/react-query'
 import { z } from 'zod/v4-mini'
 import { graphql } from '@/lib/api/graphql'
 import { rest } from '@/lib/api/rest'
 
+/**
+ * Since the API does not provide a total result count but total page count, we fetch one movie per page, total counts
+ * can be derived from the total page count.
+ * @param params Search and genre parameters
+ */
 export const movieTotalsQuery = (params: { search?: string; genre?: string }) => {
 	const metadataSearchParams = new URLSearchParams({ page: '1', limit: '1' })
 
@@ -31,7 +30,9 @@ export const movieTotalsQuery = (params: { search?: string; genre?: string }) =>
 	})
 }
 
-// MovieResult: lighter list item returned from GraphQL movies query
+/**
+ * Lighter list item returned from GraphQL movies query for list display
+ */
 export type MovieResult = {
 	id: string
 	title: string
@@ -45,6 +46,9 @@ export type MovieResult = {
 	datePublished: string | null
 }
 
+/**
+ * MovieDetail: full detail from REST /movies/:id for detail dialog display
+ */
 export type MovieDetail = {
 	id: string
 	title: string
@@ -138,8 +142,8 @@ export const movieDetailQuery = (id: string | null) =>
 		queryFn: () => rest<MovieDetail>(`/movies/${id}`, movieDetailSchema, { needsToken: true }),
 	})
 
-// Explore genres query - fetch 4 movies per predefined genre in parallel
-const exploreTemplate = template // reuse same fields
+// ---
+const exploreTemplate = template
 
 const EXPLORE_GENRES = ['Action', 'Comedy', 'Documentary', 'Sci-Fi', 'Horror'] as const
 export type ExploreGenre = (typeof EXPLORE_GENRES)[number]
@@ -148,7 +152,6 @@ export type ExploreData = Record<ExploreGenre, MovieResult[]>
 export const exploreGenresQuery = queryOptions({
 	queryKey: ['explore-genres'],
 	queryFn: async () => {
-		// Run parallel GraphQL queries for each genre, first page, 4 items
 		const results = await Promise.all(
 			EXPLORE_GENRES.map(async (genre) => {
 				try {
@@ -159,7 +162,7 @@ export const exploreGenresQuery = queryOptions({
 					const res = await graphql<{ data: { movies: { nodes: MovieResult[] } } }>(exploreTemplate, variables)
 					return [genre, res.data.movies.nodes] as const
 				} catch {
-					return [genre, []] as const // silently skip errors per requirements
+					return [genre, []] as const
 				}
 			}),
 		)
