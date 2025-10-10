@@ -45,6 +45,10 @@ export function ExploreSections({
 
 	return (
 		<div className="space-y-12 py-4">
+			<div className="text-center">
+				<h2 className="font-semibold text-3xl">Explore Popular Genres</h2>
+				<p className="pt-2 text-lg text-muted-foreground">Or start your search above</p>
+			</div>
 			{GENRE_ORDER.map((genre) => {
 				const movies = query.data[genre]
 				if (!movies || movies.length === 0) {
@@ -53,9 +57,9 @@ export function ExploreSections({
 				return (
 					<section aria-labelledby={`genre-${genre}`} className="space-y-4" key={genre}>
 						<div className="flex items-center justify-between">
-							<h2 className="font-semibold text-2xl" id={`genre-${genre}`}>
+							<h3 className="font-semibold text-2xl" id={`genre-${genre}`}>
 								{genre}
-							</h2>
+							</h3>
 							<button
 								className="rounded font-medium text-primary text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 								onClick={() => onSelectGenre(genre)}
@@ -64,7 +68,7 @@ export function ExploreSections({
 								View more
 							</button>
 						</div>
-						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="grid grid-cols-2 gap-6 md:grid-cols-4">
 							{movies.map((movie) => (
 								<MovieCard key={movie.id} movie={movie} onClick={onCardClick} onHover={onCardHover} />
 							))}
