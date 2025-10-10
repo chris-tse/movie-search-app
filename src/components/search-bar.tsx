@@ -1,8 +1,9 @@
-import { Suspense, startTransition, useEffect, useRef } from 'react'
+import { Suspense, startTransition, useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { pushCurrentHistory } from '@/features/history'
+import { useDebounce } from '@/hooks/use-debounce'
 
 type SearchBarProps = {
 	search: string
@@ -16,30 +17,20 @@ type SearchBarProps = {
 const DEBOUNCE_DELAY = 300
 
 export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage }: SearchBarProps) {
-	const timerRef = useRef<number | undefined>(undefined)
+	const [localSearch, setLocalSearch] = useState(search)
+	const debouncedSearch = useDebounce(localSearch, DEBOUNCE_DELAY)
 
-	useEffect(
-		() => () => {
-			if (timerRef.current) {
-				clearTimeout(timerRef.current)
-			}
-		},
-		[],
-	)
-
-	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const value = e.target.value
-		if (timerRef.current) {
-			clearTimeout(timerRef.current)
+	useEffect(() => {
+		if (debouncedSearch === search) {
+			return
 		}
-		timerRef.current = window.setTimeout(() => {
-			startTransition(() => {
-				setSearch(value)
-				setPage(1)
-				pushCurrentHistory(value, genre)
-			})
-		}, DEBOUNCE_DELAY)
-	}
+
+		pushCurrentHistory({ search: debouncedSearch, genre, page: 1 })
+		startTransition(() => {
+			setSearch(debouncedSearch)
+			setPage(1)
+		})
+	}, [debouncedSearch, genre, search, setPage, setSearch])
 
 	return (
 		<div className="flex flex-col gap-4 md:flex-row">
@@ -48,7 +39,7 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 				<Input
 					className="h-11 border-border bg-card pl-10"
 					defaultValue={search}
-					onChange={handleChange}
+					onChange={(e) => setLocalSearch(e.target.value)}
 					placeholder="Search for movies..."
 					type="text"
 				/>
@@ -65,10 +56,10 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 				{genres.length > 0 ? (
 					<Select
 						onValueChange={(v) => {
+							pushCurrentHistory({ search, genre: v === 'all' ? '' : v, page: 1 })
 							startTransition(() => {
 								setGenre(v === 'all' ? '' : v)
 								setPage(1)
-								pushCurrentHistory(search, v === 'all' ? '' : v)
 							})
 						}}
 						value={genre}

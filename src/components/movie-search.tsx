@@ -170,14 +170,16 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 								className={page <= 1 ? 'pointer-events-none opacity-50' : undefined}
 								href={page > 1 ? `?page=${page - 1}&search=${search}&genre=${genre}` : undefined}
 								onClick={(e) => {
+									e.preventDefault()
+
 									if (page <= 1) {
-										e.preventDefault()
 										return
 									}
-									e.preventDefault()
+
+									pushCurrentHistory({ search, genre, page: page - 1 })
+									window.scrollTo({ top: 0, behavior: 'smooth' })
 									startTransition(() => {
 										setPage(page - 1)
-										pushCurrentHistory({ search, genre, page: page - 1 })
 									})
 								}}
 								onMouseEnter={() => {
@@ -200,14 +202,16 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 								className={page >= totalPages ? 'pointer-events-none opacity-50' : undefined}
 								href={page < totalPages ? `?page=${page + 1}&search=${search}&genre=${genre}` : undefined}
 								onClick={(e) => {
+									e.preventDefault()
+
 									if (page >= totalPages) {
-										e.preventDefault()
 										return
 									}
-									e.preventDefault()
+
+									pushCurrentHistory({ search, genre, page: page + 1 })
+									window.scrollTo({ top: 0, behavior: 'smooth' })
 									startTransition(() => {
 										setPage(page + 1)
-										pushCurrentHistory({ search, genre, page: page + 1 })
 									})
 								}}
 								onMouseEnter={() => {

@@ -5,7 +5,7 @@ import { ImageOff } from 'lucide-react'
 import { RatingStars } from '@/components/rating-stars'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { movieDetailQuery, type MovieDetail } from '@/features/movies/queries'
+import { type MovieDetail, movieDetailQuery } from '@/features/movies/queries'
 
 export function MovieDetailDialog({
 	movieId,
