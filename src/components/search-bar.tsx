@@ -2,6 +2,7 @@ import { Suspense, startTransition, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { pushCurrentHistory } from '@/features/history'
 
 type SearchBarProps = {
 	search: string
@@ -35,6 +36,7 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 			startTransition(() => {
 				setSearch(value)
 				setPage(1)
+				pushCurrentHistory(value, genre)
 			})
 		}, DEBOUNCE_DELAY)
 	}
@@ -66,6 +68,7 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 							startTransition(() => {
 								setGenre(v === 'all' ? '' : v)
 								setPage(1)
+								pushCurrentHistory(search, v === 'all' ? '' : v)
 							})
 						}}
 						value={genre}

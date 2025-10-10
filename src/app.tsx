@@ -14,7 +14,13 @@ export function App() {
 	usePrefetchQuery(exploreGenresQuery)
 
 	if (isHealthcheckPending || isGenresPending) {
-		return <LoadingShell heading="Preparing your movie search experience" subheading="What will you watch next?" className='h-screen'/>
+		return (
+			<LoadingShell
+				className="h-screen"
+				heading="Preparing your movie search experience"
+				subheading="What will you watch next?"
+			/>
+		)
 	}
 
 	const apiIsHealthy = Boolean(healthcheckData?.contentful)

@@ -20,7 +20,6 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 	const formattedDuration = duration ? `${duration.hours}h ${duration.minutes}m` : null
 
 	return (
-
 		<Card
 			aria-haspopup="dialog"
 			className="group cursor-pointer overflow-hidden border-border bg-card transition-all duration-300 hover:border-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
@@ -69,8 +68,8 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 
 				<p className="line-clamp-2 hidden text-muted-foreground text-sm leading-relaxed md:block">{movie.summary}</p>
 			</CardContent>
-			<CardFooter className="mt-auto mb-2">
-				<div className="mt-6 flex items-center justify-between">
+			<CardFooter className="mt-auto mb-4 px-5">
+				<div className="mt-6 flex w-full items-center justify-between">
 					<div className="flex items-center gap-1">
 						<span className="font-medium text-sm">{movie.rating}</span>
 					</div>

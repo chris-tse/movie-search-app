@@ -10,6 +10,7 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from '@/components/ui/pagination'
+import { pushCurrentHistory } from '@/features/history'
 import { type MovieResult, movieDetailQuery, moviesQuery, movieTotalsQuery } from '@/features/movies/queries'
 import { usePrefetchPage } from '@/hooks/use-prefetch-page'
 import { LoadingShell } from './loading-shell'
@@ -76,7 +77,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 		}
 	}, [isNextHovered, prefetchNextPage])
 
-	const [activeMovieId, setActiveMovieId] = useState<string | null>(null)
+	const [activeMovieId, setActiveMovieId] = useState<string | undefined>(undefined)
 	const lastActiveMovieIdRef = useRef<string | null>(null)
 	const queryClient = useQueryClient()
 
@@ -146,7 +147,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 				movieId={activeMovieId}
 				onOpenChange={(open) => {
 					if (!open) {
-						setActiveMovieId(null)
+						setActiveMovieId(undefined)
 						// Restore focus to the card that opened the dialog, if it still exists in DOM
 						queueMicrotask(() => {
 							const id = lastActiveMovieIdRef.current
@@ -176,6 +177,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 									e.preventDefault()
 									startTransition(() => {
 										setPage(page - 1)
+										pushCurrentHistory({ search, genre, page: page - 1 })
 									})
 								}}
 								onMouseEnter={() => {
@@ -205,6 +207,7 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 									e.preventDefault()
 									startTransition(() => {
 										setPage(page + 1)
+										pushCurrentHistory({ search, genre, page: page + 1 })
 									})
 								}}
 								onMouseEnter={() => {

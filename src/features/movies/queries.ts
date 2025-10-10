@@ -107,6 +107,7 @@ export const moviesQuery = (params: { page: number; limit: number; where?: { gen
 	return queryOptions({
 		queryKey: ['movies', params],
 		queryFn: () => graphql<{ data: { movies: { nodes: MovieResult[] } } }>(template, variables),
+		placeholderData: (prev) => prev,
 	})
 }
 
