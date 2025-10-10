@@ -27,7 +27,11 @@
       },
       "suspicious": {
         "noConsole": "off",
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "off"
+      },
+      "style": {
+        "noNestedTernary": "off"
       }
     }
   },

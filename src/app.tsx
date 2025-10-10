@@ -1,15 +1,17 @@
 import { lazy } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { usePrefetchQuery, useQuery } from '@tanstack/react-query'
 import { Header } from './components/header'
 import { LoadingShell } from './components/loading-shell'
 import { genresQuery } from './features/genres/queries'
 import { healthcheckQuery } from './features/healthcheck/queries'
+import { exploreGenresQuery } from './features/movies/queries'
 
 const MovieSearch = lazy(() => import('./components/movie-search').then((module) => ({ default: module.MovieSearch })))
 
 export function App() {
 	const { isPending: isHealthcheckPending, data: healthcheckData } = useQuery(healthcheckQuery)
 	const { isPending: isGenresPending, data: genresData } = useQuery(genresQuery)
+	usePrefetchQuery(exploreGenresQuery)
 
 	if (isHealthcheckPending || isGenresPending) {
 		return <LoadingShell heading="Preparing your movie search experience" subheading="What will you watch next?" className='h-screen'/>
