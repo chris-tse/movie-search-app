@@ -33,6 +33,7 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 				}
 			}}
 			onMouseEnter={() => onHover?.(movie.id)}
+			onTouchStart={() => onHover?.(movie.id)}
 			role="button"
 			tabIndex={0}
 		>
@@ -69,7 +70,7 @@ export function MovieCard({ movie, onClick, onHover }: MovieCardProps) {
 				<p className="line-clamp-2 hidden text-muted-foreground text-sm leading-relaxed md:block">{movie.summary}</p>
 			</CardContent>
 			<CardFooter className="mt-auto mb-4 px-5">
-				<div className="md:mt-6 flex w-full items-center justify-between">
+				<div className="flex w-full items-center justify-between md:mt-6">
 					<div className="flex items-center gap-1">
 						<span className="font-medium text-sm">{movie.rating}</span>
 					</div>

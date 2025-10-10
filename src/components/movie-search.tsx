@@ -189,6 +189,9 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 								onMouseLeave={() => {
 									setIsPrevHovered(false)
 								}}
+								onTouchStart={() => {
+									prefetchPrevPage()
+								}}
 							/>
 						</PaginationItem>
 						<PaginationItem>
@@ -220,6 +223,9 @@ export function MovieSearch({ genres }: { genres: string[] }) {
 								}}
 								onMouseLeave={() => {
 									setIsNextHovered(false)
+								}}
+								onTouchStart={() => {
+									prefetchNextPage()
 								}}
 							/>
 						</PaginationItem>

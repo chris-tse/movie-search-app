@@ -1,9 +1,10 @@
 import { Suspense, startTransition, useEffect, useState } from 'react'
-import { Search } from 'lucide-react'
+import { RefreshCcw, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { pushCurrentHistory } from '@/features/history'
 import { useDebounce } from '@/hooks/use-debounce'
+import { Button } from './ui/button'
 
 type SearchBarProps = {
 	search: string
@@ -19,6 +20,8 @@ const DEBOUNCE_DELAY = 300
 export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage }: SearchBarProps) {
 	const [localSearch, setLocalSearch] = useState(search)
 	const debouncedSearch = useDebounce(localSearch, DEBOUNCE_DELAY)
+
+	useEffect(() => setLocalSearch(search), [search])
 
 	useEffect(() => {
 		if (debouncedSearch === search) {
@@ -38,10 +41,10 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 				<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 				<Input
 					className="h-11 border-border bg-card pl-10"
-					defaultValue={search}
 					onChange={(e) => setLocalSearch(e.target.value)}
 					placeholder="Search for movies..."
 					type="text"
+					value={localSearch}
 				/>
 			</div>
 			<Suspense
@@ -86,6 +89,18 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 					</Select>
 				)}
 			</Suspense>
+			<Button
+				onClick={() => {
+					setLocalSearch('')
+					setSearch('')
+					setGenre('')
+					setPage(1)
+				}}
+				variant={'ghost'}
+			>
+				<RefreshCcw className="h-4 w-4" />
+				Reset
+			</Button>
 		</div>
 	)
 }
