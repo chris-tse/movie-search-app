@@ -3,7 +3,6 @@ import { RefreshCcw, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { pushCurrentHistory } from '@/features/history'
-import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from './ui/button'
 
 type SearchBarProps = {
@@ -19,21 +18,24 @@ const DEBOUNCE_DELAY = 300
 
 export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage }: SearchBarProps) {
 	const [localSearch, setLocalSearch] = useState(search)
-	const debouncedSearch = useDebounce(localSearch, DEBOUNCE_DELAY)
-
-	useEffect(() => setLocalSearch(search), [search])
 
 	useEffect(() => {
-		if (debouncedSearch === search) {
-			return
-		}
+		setLocalSearch(search)
+	}, [search])
 
-		pushCurrentHistory({ search: debouncedSearch, genre, page: 1 })
-		startTransition(() => {
-			setSearch(debouncedSearch)
-			setPage(1)
-		})
-	}, [debouncedSearch, genre, search, setPage, setSearch])
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+		  if (localSearch !== search) {
+			pushCurrentHistory({ search: localSearch, genre, page: 1 })
+			startTransition(() => {
+			  setSearch(localSearch)
+			  setPage(1)
+			})
+		  }
+		}, DEBOUNCE_DELAY)
+	
+		return () => clearTimeout(timeout)
+	  }, [localSearch, genre, search, setPage, setSearch])
 
 	return (
 		<div className="flex flex-col gap-4 md:flex-row">
@@ -44,6 +46,7 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 					onChange={(e) => setLocalSearch(e.target.value)}
 					placeholder="Search for movies..."
 					type="text"
+					name="search"
 					value={localSearch}
 				/>
 			</div>
@@ -91,10 +94,10 @@ export function SearchBar({ search, genre, genres, setGenre, setSearch, setPage 
 			</Suspense>
 			<Button
 				onClick={() => {
-					setLocalSearch('')
-					setSearch('')
 					setGenre('')
 					setPage(1)
+					setLocalSearch('')
+					setSearch('')
 				}}
 				variant={'ghost'}
 			>

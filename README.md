@@ -88,7 +88,6 @@ src/
 Borrowed / Generated:
 - `components/ui/*` shadcn/ui base components
 - `lib/utils.ts` `cn` helper pattern
-- `hooks/use-debounce.ts` standard debounce hook pattern
 - `rating-stars.tsx` rating half‑star masking (AI-assistance)
 - Most UI layouts were mocked via AI-assistance
 
